@@ -1,0 +1,69 @@
+version: '3.7'
+services:
+  goapp:
+    build:
+      context: .
+      target: goapp-base
+    image: goapp-base
+    volumes:
+    - .:/go/src/github.com/jordanp/goapp
+    entrypoint: watcher -watch github.com/jordanp/goapp -run github.com/jordanp/goapp/cmd/goapp
+
+  test:
+    build:
+      context: .
+      target: goapp-base
+    image: goapp-base
+    volumes:
+    - .:/go/src/github.com/jordanp/goapp
+
+  cover:
+    build:
+      context: .
+      target: goapp-base
+    image: goapp-base
+    environment:
+      COVER_RESULTS: .tmp/cover-results
+    volumes:
+    - .:/go/src/github.com/jordanp/goapp
+
+  golint:
+    build:
+      context: .
+      target: goapp-base
+    image: goapp-base
+    volumes:
+    - .:/go/src/github.com/jordanp/goapp
+
+  staticcheck:
+    build:
+      context: .
+      target: goapp-base
+    image: goapp-base
+    volumes:
+    - .:/go/src/github.com/jordanp/goapp
+
+  misspell:
+    build:
+      context: .
+      target: goapp-base
+    image: goapp-base
+    volumes:
+    - .:/go/src/github.com/jordanp/goapp
+
+  vet:
+    build:
+      context: .
+      target: goapp-base
+    image: goapp-base
+    volumes:
+    - .:/go/src/github.com/jordanp/goapp
+
+  unformatted:
+    build:
+      context: .
+      target: goapp-base
+    image: goapp-base
+    volumes:
+    - .:/go/src/github.com/jordanp/goapp
+    entrypoint: ./tools/script/unformatted.sh

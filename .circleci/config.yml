@@ -1,0 +1,64 @@
+version: 2
+
+jobs:
+  test:
+    machine:
+      enabled: true
+      docker_layer_caching: true
+      image: circleci/classic:201808-01
+
+    steps:
+      - checkout
+
+      - run:
+          name: Copy the ssh key on the local folder
+          command: cp -r ~/.ssh .
+
+      - run:
+          name: Build the images
+          command: docker-compose -f docker-compose.yml build
+
+      - run:
+          name: Run Unit Tests
+          command: docker-compose -f docker-compose.yml run test
+
+      - run:
+          name: Run Coverage Tests
+          command: docker-compose -f docker-compose.yml run cover
+
+      - run:
+          name: Run Linter
+          command: docker-compose -f docker-compose.yml run unformatted
+
+      - run:
+          name: Check for misspells
+          command: docker-compose -f docker-compose.yml run misspell
+
+      - run:
+          name: Run megacheck
+          command: docker-compose -f docker-compose.yml run staticcheck
+
+      - run:
+          name: Run go vet
+          command: docker-compose -f docker-compose.yml run vet
+
+      - run:
+          name: Run go lint
+          command: docker-compose -f docker-compose.yml run golint
+
+      - store_artifacts:
+          path: /tmp/test-results
+          destination: raw-test-output
+
+      - store_test_results:
+          path: /tmp/test-results
+
+      - store_artifacts:
+          path: /tmp/cover-results
+          destination: raw-cover-output
+
+workflows:
+  version: 2
+  build-and-test:
+    jobs:
+      - test

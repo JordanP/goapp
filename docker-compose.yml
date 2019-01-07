@@ -1,0 +1,91 @@
+version: '3.7'
+services:
+  goapp:
+    build:
+      context: .
+      args:
+        VERSION: ${VERSION:-dev}
+    image: ${IMAGE:-goapp}
+    ports:
+    - "2000:2000"
+    depends_on:
+    - postgres
+    environment:
+      - SECRET_KEY=toto
+      - SQL_DSN=postgres://myuser:mypass@postgres/myuser?sslmode=disable
+      - CIRCLECI
+
+  postgres:
+    image: postgres:11
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypass
+
+  test:
+    build:
+      context: .
+      target: goapp-build
+    image: goapp-build
+    depends_on:
+    - postgres
+    volumes:
+    - /tmp/test-results:/tmp/test-results
+    entrypoint: ./tools/script/test.sh
+    environment:
+      - SECRET_KEY=toto
+      - SQL_DSN=postgres://myuser:mypass@postgres/myuser?sslmode=disable
+      - CIRCLECI
+
+  cover:
+    build:
+      context: .
+      target: goapp-build
+    image: goapp-build
+    depends_on:
+    - postgres
+    volumes:
+    - /tmp/cover-results:/tmp/cover-results
+    entrypoint: ./tools/script/cover.sh
+    environment:
+      - SECRET_KEY=toto
+      - SQL_DSN=postgres://myuser:mypass@postgres/myuser?sslmode=disable
+      - CIRCLECI
+
+
+  golint:
+    build:
+      context: .
+      target: goapp-build
+    image: goapp-build
+    entrypoint: ./tools/script/golint.sh
+
+  staticcheck:
+    build:
+      context: .
+      target: goapp-build
+    image: goapp-build
+    entrypoint: staticcheck ./...
+
+  misspell:
+    build:
+      context: .
+      target: goapp-build
+    image: goapp-build
+    entrypoint:
+    - bash
+    - -c
+    - "find . -name '*.go' | grep -v vendor/ | xargs misspell --error"
+
+  vet:
+    build:
+      context: .
+      target: goapp-build
+    image: goapp-build
+    entrypoint: go vet ./...
+
+  unformatted:
+    build:
+      context: .
+      target: goapp-build
+    image: goapp-build
+    entrypoint: ./tools/script/unformatted.sh
